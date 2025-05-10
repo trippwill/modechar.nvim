@@ -1,55 +1,54 @@
 # modechar.nvim
 
-A Neovim extension that provides user-defined characters with a
-HilightGroup tied to the current mode.
+> [!NOTE]
+> This plugin is in early development and may not be fully functional. Use at your own risk.
+> This README is a work in progress and may not contain all the necessary information.
+
+A Neovim extension that provides user-defined characters with a HighlightGroup and filters for the current window.
 
 ## Features
 
-- Get customizable character to display in the gutter
-or other UI elements based on the current mode.
-- Supports user-defined highlight groups for normal and inverted characters.
-- Configurable filters for floating windows, inactive windows, and buffer types.
-- Integration with lualine for dynamic color updates.
-- Debugging options for advanced users.
+- Get customizable characters to display in the gutter or other UI elements based on window filters.
+  - Configurable filters for floating windows, inactive windows, and buffer types.
+- Works seamlessly with the `modahl` plugin for dynamic highlight group updates.
 
 ## Roadmap
 
-- Better integration with plugin managers
-- Logging to a file
+- Better integration with plugin managers.
+- Neovim help documentation.
+- Logging to a file.
 
 ## Installation
 
-Use your favorite plugin manager to install `modechar.nvim`. For example, with [packer.nvim](https://github.com/wbthomason/packer.nvim):
+Use your favorite plugin manager to install `modechar.nvim`. For example, with [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
-use {
-  'tripp/modechar.nvim',
-  config = function()
-    require('modechar').setup()
-  end
+{
+  --dir = "~/repos/modechar.nvim",
+  --name = "modechar",
+  config = function(_, opts)
+    require("modechar").setup(opts)
+  end,
+  opts = {
+    chars = {
+      gutter = { "▌", highlight = "ModeCharGutter", clear_hl = true, buftype = { "", "nofile" } },
+      arrow = { "▶", highlight = "Modahl" },
+    },
+    debug = false,
+  },
 }
 ```
 
 ## Configuration
 
-You can configure `modechar.nvim` by passing options to the `setup` function.
-Below is an example configuration:
+You can configure `modechar.nvim` by passing options to the `setup` function. Below is an example configuration:
 
 ```lua
 require('modechar').setup({
   chars = {
-    gutter = {
-      "\u{258c}"
-      -- override any fields in the char_filter table
-      inactive = true,
-    },
-    arrow = { "\u{2794}", inverted=true }, -- Character to display as an arrow
+    gutter = { "▌", highlight = "ModeCharGutter", clear_hl = true, buftype = { "", "nofile" } },
+    arrow = { "▶", highlight = "Modahl" },
   },
-  colors = function(mode)
-    return require('modechar').lualine(mode) -- Get colors dynamically from lualine
-  end,
-  hl = "ModeCharGroup", -- Highlight group for the character
-  hl_inverted = "ModeCharGroupInverted", -- Highlight group for the inverted character
   char_filter = {
     floats = false, -- Disable in floating windows
     inactive = false, -- Disable in inactive windows
@@ -74,13 +73,10 @@ print(char)
 To use the character in your statuscolumn or other UI elements:
 
 ```lua
-vim.o.statuscolumn = [[%!v:lua.require'modechar'.get('gutter') .. v:lua.require'snacks.statuscolumn'.get()]]
+vim.o.statuscolumn = [[%!v:lua.require'modechar'.get('gutter')]]
 ```
 
-### Highlighting Modes
-
-The plugin automatically updates the highlight groups when the mode changes.
-You can customize the colors by using the `colors` option.
+You can dynamically change the colors by defining highlight groups in the `modahl` plugin.
 
 ### Debugging
 
@@ -102,11 +98,36 @@ You can use filters to control where the characters are displayed. For example:
 - `inactive`: Set to `true` to enable in inactive windows.
 - `buftype`: Specify buffer types where the character should appear.
 
+### Integration with modahl
+
+The `modechar` plugin works well with the `modahl` plugin to dynamically update highlight groups based on the current mode. For example:
+
+```lua
+{
+  --dir = "~/repos/modechar.nvim/lua/modahl/",
+  --name = "modahl",
+  opts = {
+    hl_groups = {
+      {
+        "ModeCharGutter",
+        adapter = "lualine-invert", -- Add lualine as a dependency to use this adapter
+      },
+      {
+        adapter = "lualine", -- Add lualine as a dependency to use this adapter
+        links = { "CursorColumn" },
+      },
+    },
+    debug = false,
+  },
+  config = function(_, opts)
+    require("modahl").setup(opts)
+  end,
+}
+```
+
 ### Integration with lualine
 
-The plugin integrates with lualine to dynamically fetch colors for the current mode.
-Ensure you have lualine installed and configured, or define your own colors in
-the `colors` function/table.
+The plugin integrates with lualine to dynamically fetch colors for the current mode. Ensure you have lualine installed and configured, then use the `lualine` or `lualine-invert` adapters provided by the `modahl` plugin.
 
 ## Contributing
 
@@ -115,3 +136,4 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 ## License
 
 Licensed under the GPL-3.0 License. See [LICENSE](LICENSE) for details.
+
