@@ -22,6 +22,8 @@
 ---@field char_filter? CharDefFilters -- default filters to use for all characters. default: { floats = false, inactive = false, buftype = { "" = true }, fallback = "" }
 ---@field debug? boolean | number -- debug level. default: false
 
+---@alias GetChar fun(name: string, winid?: number): string -- function to get the character to display by name
+
 ---@class ModeCharConfig
 local M = {}
 local utils = require("modechar.utils")
@@ -68,7 +70,7 @@ function M.setup(opts)
 	M.options = vim.tbl_deep_extend("force", M.options, opts or {})
 
 	if M.options.debug then
-		vim.notify("ModeChar: setup() called with options:\n" .. utils.deep_tostring(M.options), vim.log.levels.INFO)
+		vim.notify("ModeChar: setup() called with options:\n" .. vim.inspect(M.options), vim.log.levels.INFO)
 	end
 
 	-- Validate the options

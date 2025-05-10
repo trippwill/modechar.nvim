@@ -1,0 +1,79 @@
+{
+  "name": "Neovim UI Enhancement Plugins",
+  "version": "1.0.0",
+  "system_prompt": "You are assisting with the development of Neovim plugins for UI enhancement.",
+  "groups": [
+    {
+      "name": "modahl",
+      "system_prompt": "You are working on the 'modahl' plugin, which creates dynamic highlight groups that update based on mode changes.",
+      "data": [
+        "modahl_init",
+        "modahl_debug_adapter",
+        "modahl_lualine_adapter",
+        "modahl_lualine-invert_adapter",
+        "modahl_modes"
+      ]
+    },
+    {
+      "name": "modechar",
+      "system_prompt": "You are working on the 'modechar' plugin, which provides named characters and window filters with highlight groups for use in status columns, borders, and other UI elements.",
+      "data": [
+        "modechar_init",
+        "modechar_utils",
+        "modechar_plugin"
+      ]
+    }
+  ],
+  "data": {
+    "modahl_init": {
+      "type": "file",
+      "path": "lua/modahl/init.lua",
+      "description": "Entry point for the 'modahl' plugin."
+    },
+    "modahl_debug_adapter": {
+      "type": "file",
+      "path": "lua/modahl/debug_adapter.lua",
+      "description": "Debug adapter for the 'modahl' plugin."
+    },
+    "modahl_lualine-invert_adapter": {
+      "type": "file",
+      "path": "lua/modahl/lualine-invert_adapter.lua",
+      "description": "Lualine Inverted adapter for the 'modahl' plugin."
+    },
+    "modahl_lualine_adapter": {
+      "type": "file",
+      "path": "lua/modahl/lualine_adapter.lua",
+      "description": "Lualine adapter for the 'modahl' plugin."
+    },
+    "modahl_modes": {
+      "type": "file",
+      "path": "lua/modahl/modes.lua",
+      "description": "Defines mode-based highlight groups for the 'modahl' plugin."
+    },
+    "modechar_init": {
+      "type": "file",
+      "path": "lua/modechar/init.lua",
+      "description": "Entry point for the 'modechar' plugin."
+    },
+    "modechar_utils": {
+      "type": "file",
+      "path": "lua/modechar/utils.lua",
+      "description": "Utility functions for the 'modechar' plugin."
+    },
+    "modechar_plugin": {
+      "type": "file",
+      "path": "plugin/modechar.lua",
+      "description": "Plugin entry point for the 'modechar' plugin."
+    },
+    "readme": {
+      "type": "file",
+      "path": "README.md",
+      "description": "General project overview and documentation."
+    },
+    "unicode_ui_symbols": {
+      "type": "file",
+      "path": "unicode-ui-symbols.md",
+      "description": "Reference for Unicode UI symbols."
+    }
+  }
+}
