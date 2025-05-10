@@ -38,8 +38,8 @@ A custom adapter can easily be created inline:
 
 ---@class HighlightGroupDefinition
 ---@field [1]? string
----@field adapter ModahlAdapter | "debug" | "lualine" | "lualine-invert"
----@field links string[]
+---@field adapter? ModahlAdapter | "debug" | "lualine" | "lualine-invert"
+---@field links? string[]
 
 ---@class ModahlOptions
 ---@field hl_groups? HighlightGroupDefinition[]
@@ -68,16 +68,19 @@ M.defaults = {
   },
   autocmd_group = "ModahlGroup",
   mode_map = {
-    i = modes.INSERT,
     n = modes.NORMAL,
+    no = modes.NORMAL,
+    ni = modes.NORMAL,
+    i = modes.INSERT,
+    ic = modes.INSERT,
     v = modes.VISUAL,
     V = modes.VISUAL_LINE,
     [""] = modes.VISUAL_BLOCK,
-    r = modes.REPLACE,
-    R = modes.REPLACE,
-    c = modes.COMMAND,
     s = modes.SELECT,
-    S = modes.VISUAL,
+    S = modes.SELECT,
+    R = modes.REPLACE,
+    Rv = modes.REPLACE,
+    c = modes.COMMAND,
     t = modes.TERMINAL,
   },
   debug = false,
@@ -130,22 +133,32 @@ end
 local function setup_highlight_groups(config)
   local hl_groups = config.hl_groups or {}
   for _, group in ipairs(hl_groups) do
-    local group_name = group[1] or ""
-    local adapter = group.adapter
+    local group_name = group[1] or nil
+    local adapter = group.adapter or nil
     local links = group.links
 
-    if group_name == "" then
+    if not group_name then
       vim.notify("Invalid highlight group name", vim.log.levels.ERROR)
       return
     end
 
-    local hl_attributes = adapter.on_mode_change(modes.UNDEFINED, vim.fn.mode(), config) or { fg = "NONE", bg = "NONE" }
+    if not adapter then
+      vim.notify("Invalid adapter for group: " .. group_name, vim.log.levels.ERROR)
+      return
+    end
+
+    local mode = config.mode_map[vim.fn.mode()] or modes.UNDEFINED
+    if mode == modes.UNDEFINED and config.debug then
+      vim.notify("Invalid mode for group: " .. group_name, vim.log.levels.DEBUG)
+    end
+
+    local hl_attributes = adapter.on_mode_change(modes.UNDEFINED, mode, config) or { fg = "NONE", bg = "NONE" }
 
     -- Define the highlight group
     vim.api.nvim_set_hl(0, group_name, hl_attributes)
 
     -- Set up links for the highlight group
-    for _, link in ipairs(links) do
+    for _, link in ipairs(links or {}) do
       vim.api.nvim_set_hl(0, link, { link = group_name })
     end
   end
@@ -171,7 +184,8 @@ function M.setup(opts)
       if type(adapter) == "string" and vim.tbl_contains(known_adapters, adapter) then
         group.adapter = require("modahl." .. group.adapter .. "_adapter")
       else
-        vim.notify("Invalid adapter for group " .. group[1], vim.log.levels.ERROR)
+        group.adapter = require("modahl.debug_adapter")
+        vim.notify("Invalid adapter for group: " .. group[1], vim.log.levels.ERROR)
       end
     end
   end
