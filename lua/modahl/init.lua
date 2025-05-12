@@ -42,7 +42,7 @@ A custom adapter can easily be created inline:
 ---@field links? string[]
 
 ---@class ModahlOptions
----@field hl_groups? HighlightGroupDefinition[]
+---@field highlights? HighlightGroupDefinition[]
 ---@field autocmd_group? string
 ---@field mode_map? table<string, Mode>
 ---@field debug? boolean | "verbose"
@@ -59,9 +59,9 @@ local default_hlname = "Modahl"
 
 ---@type ModahlOptions
 M.defaults = {
-  hl_groups = {
+  highlights = {
     {
-      "Modahl",
+      default_hlname,
       adapter = "debug",
       links = {},
     },
@@ -87,7 +87,7 @@ M.defaults = {
 }
 
 local function setup_mode_change_listener(config)
-  vim.api.nvim_create_autocmd("ModeChanged", {
+  vim.api.nvim_create_autocmd({ "ModeChanged", "BufEnter" }, {
     group = config.autocmd_group,
     callback = function()
       local prev_mode = M.prev_mode or modes.UNDEFINED
@@ -103,7 +103,7 @@ local function setup_mode_change_listener(config)
         return
       end
 
-      for _, group in ipairs(config.hl_groups) do
+      for _, group in ipairs(config.highlights) do
         local adapter = group.adapter
         local attributes = adapter.on_mode_change(prev_mode, curr_mode, config)
         if attributes then
@@ -131,7 +131,7 @@ end
 
 ---@param config ModahlOptions
 local function setup_highlight_groups(config)
-  local hl_groups = config.hl_groups or {}
+  local hl_groups = config.highlights or {}
   for _, group in ipairs(hl_groups) do
     local group_name = group[1] or nil
     local adapter = group.adapter or nil
@@ -170,7 +170,7 @@ function M.setup(opts)
   -- Merge user options with defaults
   local config = vim.tbl_deep_extend("force", {}, M.defaults, opts or {})
 
-  for _, group in ipairs(config.hl_groups) do
+  for _, group in ipairs(config.highlights) do
     local adapter = group.adapter
 
     if type(group[1]) ~= "string" then

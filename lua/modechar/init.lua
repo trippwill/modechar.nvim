@@ -1,9 +1,9 @@
--- modechar - Get a character Highlighted in the current mode
+-- modechar - Register characters by name, with associated filters and highlight groups.
 
 ---@class CharDef : CharDefFilters
 ---@field [1] string -- the character to show (can be any string)
----@field highlight string -- highlight group name to use for the character.
----@field clear_hl? boolean -- whether to clear the highlight group after printing the character. default: true
+---@field highlight "ModeCharLualine" | "ModeCharLualineInvert" | "Debug" | string -- highlight group name to use for the character.
+---@field clear_hl? boolean -- whether to clear the highlight providedup after printing the character. default: true
 
 ---@class CharDefFilters
 ---@field floats? boolean | string -- whether to show the character in floating windows. default: false
@@ -15,23 +15,19 @@
 ---@field chars? table<string, CharDef> | fun(arg: string): CharDef -- a table of ModeChar indexed by name or an equivalent function
 ---@field char_filter? CharDefFilters -- default filters to use for all characters. default: { floats = false, inactive = false, buftype = { "" = true }, fallback = "" }
 ---@field debug? boolean | number -- debug level. default: false
-
----@alias GetChar fun(name: string, winid?: number): string -- function to get the character to display by name
+---@field modahl_opts? ModahlOptions -- options for the Modahl module.
 
 ---@class ModeCharModule
 ---@field defaults ModeCharOptions -- default options for the ModeChar module
----@field options ModeCharOptions | nil -- current options for the ModeChar module
+---@field config ModeCharOptions | nil -- current options for the ModeChar module
 ---@field setup fun(opts: ModeCharOptions) -- function to setup the ModeChar module
----@field get GetChar -- function to get the character to display by name
----@field is_valid_window fun(winid: number, chardef: CharDef): boolean -- function to validate a window against the filters
+---@field get fun(name: string, winid?: number): string -- function to get the character to display by name
 local M = {}
-
-_G.ModeChar = M
 
 ---@type ModeCharOptions
 M.defaults = {
   chars = {
-    gutter = { "\u{258c}", highlight = "Modahl" },
+    gutter = { "\u{258c}", highlight = "ModeCharLualineInvert" },
   },
   char_filter = {
     floats = false,
@@ -39,12 +35,31 @@ M.defaults = {
     buftype = "", -- only show in normal buffers
     fallback = "",
   },
+  debug = false,
+  modahl_opts = {
+    highlights = {
+      {
+        "ModeCharLualineInvert",
+        adapter = "lualine-invert",
+      },
+      {
+        "ModeCharLualine",
+        adapter = "lualine",
+      },
+      {
+        "ModeCharDebug",
+        adapter = "debug",
+      },
+    },
+    debug = false,
+  },
 }
 
 ---@type ModeCharOptions | nil
-M.options = nil
+---@package
+M.config = nil
 
--- Setup the ModeChar plugin
+--Setup the ModeChar plugin
 ---@param opts ModeCharOptions
 function M.setup(opts)
   local config = vim.tbl_deep_extend("force", M.defaults, opts or {})
@@ -59,67 +74,82 @@ function M.setup(opts)
     return
   end
 
-  M.options = config
+  -- Setup Modahl if options are provided
+  if type(config.modahl_opts) == "table" then
+    local modahl = require("modahl")
+    local ok, res = pcall(modahl.setup, config.modahl_opts)
+    if not ok then
+      vim.notify("ModeChar: failed to setup Modahl: " .. tostring(res), vim.log.levels.ERROR)
+    end
+  end
+
+  M.config = config
 end
 
--- Get the character to display by name
+--Get the character to display by name
 ---@param name string - the index of the opts.chars table or function
 ---@param winid? number - provide to check filters against the window, or nil to use g.statusline_winid
 ---@return string -- the character to show
 function M.get(name, winid)
-  if not M.options then
+  if not M.config then
     vim.notify_once("ModeChar: setup() must be called before using get()", vim.log.levels.ERROR)
     return ""
   end
 
+  local chars = M.config.chars
+  local default_filter = M.config.char_filter
   local ef_key = "expanded_fallback"
-  local chardef = M.options.chars[name]
+
+  if not chars then
+    vim.notify("ModeChar: chars must be a table or a function", vim.log.levels.ERROR)
+    return ""
+  end
+
+  -- Retrieve the character definition
+  local chardef = (type(chars) == "function" and chars(name)) or chars[name]
   if not chardef then
-    return M.options.char_filter.fallback or ""
+    return (default_filter and default_filter.fallback) or ""
   end
 
-  local final_char = "%*"
-  if type(chardef.clear_hl) == "boolean" and not chardef.clear_hl then
-    final_char = ""
-  end
+  -- Handle highlight clearing
+  local final_char = (chardef.clear_hl == false) and "" or "%*"
 
+  -- Cache expanded fallback if not already cached
   if not chardef[ef_key] then
-    -- if fallback is nil or empty use the empty string
-    -- otherwise use the higlight group and fallback character
-    local fallback_char = chardef.fallback or M.options.char_filter.fallback or ""
-    local expanded_fallback = ""
-    if fallback_char ~= "" then
-      expanded_fallback = "%#" .. chardef.highlight .. "#" .. fallback_char .. final_char
-    end
-    chardef[ef_key] = expanded_fallback
+    local fallback_char = chardef.fallback or (default_filter and default_filter.fallback) or ""
+    chardef[ef_key] = (fallback_char ~= "")
+        and ("%#" .. (chardef.highlight or "") .. "#" .. fallback_char .. final_char)
+      or ""
   end
 
+  -- Check if the character is excluded by the filters
   winid = winid or vim.g.statusline_winid
-  if not M.is_valid_window(winid, chardef) then
+  if not M:is_valid_window(winid, chardef) or not chardef.highlight or not chardef[1] then
     return chardef[ef_key]
   end
 
+  -- Return the final character with highlight
   return "%#" .. chardef.highlight .. "#" .. chardef[1] .. final_char
 end
 
---- Validate window filters
+--Validate window filters
 ---@private
----@package
+---@param self ModeCharModule
 ---@param winid number
 ---@param chardef CharDef
 ---@return boolean
-function M.is_valid_window(winid, chardef)
-  local floats = chardef.floats or M.options.char_filter.floats
+function M:is_valid_window(winid, chardef)
+  local floats = chardef.floats or self.config.char_filter.floats
   if not floats and vim.api.nvim_win_get_config(winid).relative ~= "" then
     return false
   end
 
-  local inactive = chardef.inactive or M.options.char_filter.inactive
+  local inactive = chardef.inactive or self.config.char_filter.inactive
   if not inactive and vim.api.nvim_get_current_win() ~= winid then
     return false
   end
 
-  local buftype = chardef.buftype or M.options.char_filter.buftype
+  local buftype = chardef.buftype or self.config.char_filter.buftype
   if type(buftype) == "string" then
     buftype = { buftype }
   end
