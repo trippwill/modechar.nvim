@@ -1,0 +1,178 @@
+==============================================================================
+Modes                                                    *modechar.modhal.modes*
+
+ Defines the modes recognized by the modahl plugin. Neovim native mode strings are mapped to these values.
+
+Mode                                                                      *Mode*
+
+    Values: ~
+        UNDEFINED
+        NORMAL
+        INSERT
+        VISUAL
+        VISUAL_LINE
+        VISUAL_BLOCK
+        REPLACE
+        COMMAND
+        SELECT
+        TERMINAL
+
+
+==============================================================================
+Introduction                                                   *modechar.modahl*
+
+Modahl: A module that dynamically updates highlight groups based on mode changes.
+
+Create new highlight groups and link them to existing ones, updating them based on the current mode in Neovim.
+The atttributes for the highlight group updates are provided by the adapter. Three known adapters
+are provided: "debug", "lualine", and "lualine-invert". The "debug" adapter is the default if not configured.
+
+The known adapters are configured by name:
+>
+{
+  "MyOtherHighlightIsAPorche",
+  adapter = "lualine",
+}
+<
+
+>
+ A custom adapter can easily be created inline:
+{
+  "MyCustomGroup",
+  ---@type ModahlAdapter
+  adapter = {
+    name = "MyCustomAdapter",
+    on_mode_change = function(prev, curr, config)
+      local modes = require("modahl.modes")
+      if curr == modes.NORMAL then
+        return { fg = "red", bg = "blue" }
+      elseif curr == modes.INSERT then
+        return { fg = "green", bg = "yellow" }
+      else
+        return { fg = "white", bg = "black" }
+      end
+    end,
+  },
+}
+<
+
+==============================================================================
+Types                                                          *modechar.modahl*
+
+ModahlAdapter                                                    *ModahlAdapter*
+
+    Fields: ~
+        {name}            (string)                                                                      -- the name of the adapter
+        {on_mode_change}  (fun(prev:Mode,curr:Mode,config:ModahlOptions):vim.api.keyset.highlight|nil)  -- callback function
+
+
+HighlightGroupDefinition                              *HighlightGroupDefinition*
+
+    Fields: ~
+        {1?}        (string)                                            -- the name of the highlight group to create and keep updated
+        {adapter?}  (ModahlAdapter|"debug"|"lualine"|"lualine-invert")  -- the adapter to use for this group
+        {links?}    (string[])                                          -- a list of highlight groups to link to this group
+
+
+ModahlOptions                                                    *ModahlOptions*
+
+    Fields: ~
+        {highlights?}     (HighlightGroupDefinition[])  -- a list of highlight groups to create and keep updated
+        {autocmd_group?}  (string)                      -- the name of the autocommand group to create
+        {mode_map?}       (table<string,Mode>)          -- a map of Neovim modes to Modahl modes
+        {debug?}          (boolean|"verbose")           -- whether to enable debug logging
+
+
+==============================================================================
+Module                                                         *modechar.modahl*
+
+ModahlModule                                                      *ModahlModule*
+
+
+M.defaults                                                          *M.defaults*
+    Default options.
+
+    Type: ~
+        (ModahlOptions)
+
+
+M.setup({opts})                                                        *M.setup*
+    Initialize the Modahl module with the given options.
+
+    Parameters: ~
+        {opts}  (ModahlOptions|{})
+
+
+==============================================================================
+Introduction                                                 *modechar.modechar*
+
+ModeChar: A module that registers a character (or any string) by name
+with associated window filters and highlights. It can be used to display
+characters in the statusline, tabline, or any other place where you can
+use a string.
+
+>
+vim.o.statuscolumn = [[%!v:lua.require'modechar'.get('gutter') .. v:lua.require'snacks.statuscolumn'.get()]]
+<
+
+==============================================================================
+Types                                                        *modechar.modechar*
+
+CharDef : CharDefFilters                                               *CharDef*
+
+    Fields: ~
+        {1}          (string)                                                    -- the character to show (can be any string)
+        {highlight}  ("ModeCharLualine"|"ModeCharLualineInvert"|"Debug"|string)  -- highlight group name to use for the character.
+        {clear_hl?}  (boolean)                                                   -- whether to clear the highlight providedup after printing the character. default: true
+
+
+CharDefFilters                                                  *CharDefFilters*
+
+    Fields: ~
+        {floats?}    (boolean|string)        -- whether to show the character in floating windows. default: false
+        {inactive?}  (boolean|string)        -- whether to show the character in inactive windows. default: false
+        {buftype?}   (string|string[]|true)  -- a list of buffer types to show the character in. default: "" (normal buffers)
+        {fallback?}  (string)                -- fallback character to use if the ModeChar is excluded by the filters. default: ""
+
+
+ModeCharOptions                                                *ModeCharOptions*
+
+    Fields: ~
+        {chars?}        (table<string,CharDef>|fun(arg:string):CharDef)  -- a table of ModeChar indexed by name or an equivalent function
+        {char_filter?}  (CharDefFilters)                                 -- default filters to use for all characters. default: { floats = false, inactive = false, buftype = { "" = true }, fallback = "" }
+        {debug?}        (boolean|number)                                 -- debug level. default: false
+        {modahl_opts?}  (ModahlOptions)                                  -- options for the Modahl module.
+
+
+==============================================================================
+Module                                                       *modechar.modechar*
+
+ModeCharModule                                                  *ModeCharModule*
+
+
+M.defaults                                                          *M.defaults*
+    Default options.
+
+    Type: ~
+        (ModeCharOptions)
+
+
+M.setup({opts})                                                        *M.setup*
+    Initialize the ModeChar module with the given options.
+
+    Parameters: ~
+        {opts}  (ModeCharOptions|{})
+
+
+M.get({name}, {winid?})                                                  *M.get*
+    Get the character to display by name.
+
+    Parameters: ~
+        {name}    (string)  -- the key of the opts.chars table or the arg to the function
+        {winid?}  (number)  -- provide to check filters against the window, or nil to use g.statusline_winid
+
+    Returns: ~
+        (_)  -- the character to show or the fallback character if excluded by filters
+
+
+vim:tw=78:ts=8:noet:ft=help:norl:
