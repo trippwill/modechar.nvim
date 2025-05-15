@@ -1,4 +1,4 @@
----@mod modechar.modechar Introduction
+---@mod modechar.modechar.intro Introduction
 ---@brief [[
 ---ModeChar: A module that registers a character (or any string) by name
 ---with associated window filters and highlights. It can be used to display
@@ -10,11 +10,11 @@
 ---<
 ---@brief ]]
 
----@mod modechar.modechar Types
+---@mod modechar.modechar.types Types
 
 ---@class CharDef : CharDefFilters
 ---@field [1] string -- the character to show (can be any string)
----@field highlight 'ModeCharLualine' | 'ModeCharLualineInvert' | 'Debug' | string -- highlight group name to use for the character.
+---@field highlight 'ModeCharLualine' | 'ModeCharLualineInvert' | 'ModeCharDebug' | string -- highlight group name to use for the character.
 ---@field clear_hl? boolean -- whether to clear the highlight providedup after printing the character. default: true
 
 ---@class CharDefFilters
@@ -109,10 +109,9 @@ function M.get(name, winid)
   end
 
   local chars = M.config.chars
-  local default_filter = M.config.char_filter
-  local ef_key = 'expanded_fallback'
+  local default_fallback = M.config.char_filter.fallback or ''
 
-  if not chars then
+  if not chars or (type(chars) ~= 'table' and type(chars) ~= 'function') then
     vim.notify('ModeChar: chars must be a table or a function', vim.log.levels.ERROR)
     return ''
   end
@@ -120,24 +119,16 @@ function M.get(name, winid)
   -- Retrieve the character definition
   local chardef = (type(chars) == 'function' and chars(name)) or chars[name]
   if not chardef then
-    return (default_filter and default_filter.fallback) or ''
+    return default_fallback
   end
 
   -- Handle highlight clearing
   local final_char = (chardef.clear_hl == false) and '' or '%*'
 
-  -- Cache expanded fallback if not already cached
-  if not chardef[ef_key] then
-    local fallback_char = chardef.fallback or (default_filter and default_filter.fallback) or ''
-    chardef[ef_key] = (fallback_char ~= '')
-        and ('%#' .. (chardef.highlight or '') .. '#' .. fallback_char .. final_char)
-      or ''
-  end
-
   -- Check if the character is excluded by the filters
   winid = winid or vim.g.statusline_winid
   if not M:is_valid_window(winid, chardef) or not chardef.highlight or not chardef[1] then
-    return chardef[ef_key]
+    return chardef.fallback or default_fallback or ''
   end
 
   -- Return the final character with highlight

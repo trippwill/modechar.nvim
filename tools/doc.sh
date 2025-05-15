@@ -6,11 +6,10 @@
 
 mkdir -p "$PWD/doc"
 cargo install vimcats --features=cli
-vimcats -c -a -t -f lua/modahl/modes.lua \
+vimcats -c -a -t -f \
+  lua/modechar/init.lua \
   lua/modahl/init.lua \
-  lua/modahl/debug_adapter.lua \
-  lua/modahl/lualine_adapter.lua \
-  lua/modahl/lualine-invert_adapter.lua \
-  lua/modechar/init.lua >"$PWD/doc/modechar.nvim.txt"
+  lua/modahl/modes.lua \
+  >"$PWD/doc/modechar.nvim.txt"
 
 less "$PWD/doc/modechar.nvim.txt"

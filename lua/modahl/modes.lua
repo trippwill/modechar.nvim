@@ -1,4 +1,4 @@
----@mod modechar.modhal.modes Modes
+---@mod modechar.modhal.Mode Modes
 ---@brief [[
 --- Defines the modes recognized by the modahl plugin. Neovim native mode strings are mapped to these values.
 ---@brief ]]

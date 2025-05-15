@@ -4,7 +4,7 @@
 > This plugin is in early development and may not be fully functional. Use at your own risk.
 > This README is a work in progress and may not contain all the necessary information.
 
-A Neovim extension that provides user-defined characters with a HighlightGroup and filters for the current window.
+A Neovim extension providing user-defined characters with a HighlightGroup and filters for the current window.
 
 ## Features
 
@@ -27,8 +27,8 @@ Use your favorite plugin manager to install `modechar.nvim`. For example, with [
   module = "modechar",
   opts = {
     chars = {
-      gutter = { "▌", highlight = "ModeCharGutter", clear_hl = true, buftype = { "", "nofile" } },
-      arrow = { "▶", highlight = "Modahl" },
+      gutter = { "▌", highlight = "ModeCharLualineInvert", clear_hl = true, buftype = { "", "nofile" } },
+      arrow = { "▶", highlight = "ModeCharLualine" },
     },
     debug = false,
   },
@@ -42,8 +42,8 @@ You can configure `modechar.nvim` by passing options to the `setup` function. Be
 ```lua
 require('modechar').setup({
   chars = {
-    gutter = { '▌', highlight = 'ModeCharGutter', clear_hl = true, buftype = { '', 'nofile' } },
-    arrow = { '▶', highlight = 'Modahl' },
+    gutter = { '▌', highlight = 'ModeCharLualineInvert', clear_hl = true, buftype = { '', 'nofile' } },
+    arrow = { '▶', highlight = 'ModeCharDebug' },
   },
   char_filter = {
     floats = false, -- Disable in floating windows
@@ -106,18 +106,18 @@ The `modechar` plugin works well with the `modahl` plugin to dynamically update 
   ---@type ModeCharOptions
   opts = {
     chars = {
-      gutter = { "▌", highlight = "ModeCharGutter", clear_hl = true, buftype = { "", "nofile" } },
-      arrow = { "▶", highlight = "Modahl" },
+      gutter = { "▌", highlight = "MyGutter", clear_hl = true, buftype = { "", "nofile" } },
+      arrow = { "▶", highlight = "MyArrow" },
     },
     debug = false,
     modahl_opts = {
       highlights = {
         {
-          "ModeCharGutter",
+          "MyGutter",
           adapter = "lualine-invert",
         },
         {
-          "ModeCharArrow",
+          "MyArrow",
           adapter = "debug",
           links = { "CursorColumn" },
         },

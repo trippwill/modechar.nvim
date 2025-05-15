@@ -1,25 +1,77 @@
 ==============================================================================
-Modes                                                    *modechar.modhal.modes*
+Introduction                                           *modechar.modechar.intro*
 
- Defines the modes recognized by the modahl plugin. Neovim native mode strings are mapped to these values.
+ModeChar: A module that registers a character (or any string) by name
+with associated window filters and highlights. It can be used to display
+characters in the statusline, tabline, or any other place where you can
+use a string.
 
-Mode                                                                      *Mode*
+>
+vim.o.statuscolumn = [[%!v:lua.require'modechar'.get('gutter') .. v:lua.require'snacks.statuscolumn'.get()]]
+<
 
-    Values: ~
-        UNDEFINED
-        NORMAL
-        INSERT
-        VISUAL
-        VISUAL_LINE
-        VISUAL_BLOCK
-        REPLACE
-        COMMAND
-        SELECT
-        TERMINAL
+==============================================================================
+Types                                                  *modechar.modechar.types*
+
+CharDef : CharDefFilters                             *modechar.modechar.CharDef*
+
+    Fields: ~
+        {1}          (string)                                                            -- the character to show (can be any string)
+        {highlight}  ("ModeCharLualine"|"ModeCharLualineInvert"|"ModeCharDebug"|string)  -- highlight group name to use for the character.
+        {clear_hl?}  (boolean)                                                           -- whether to clear the highlight providedup after printing the character. default: true
+
+
+CharDefFilters                                *modechar.modechar.CharDefFilters*
+
+    Fields: ~
+        {floats?}    (boolean|string)        -- whether to show the character in floating windows. default: false
+        {inactive?}  (boolean|string)        -- whether to show the character in inactive windows. default: false
+        {buftype?}   (string|string[]|true)  -- a list of buffer types to show the character in. default: "" (normal buffers)
+        {fallback?}  (string)                -- fallback character to use if the ModeChar is excluded by the filters. default: ""
+
+
+ModeCharOptions                              *modechar.modechar.ModeCharOptions*
+
+    Fields: ~
+        {chars?}        (table<string,CharDef>|fun(arg:string):CharDef)  -- a table of ModeChar indexed by name or an equivalent function
+        {char_filter?}  (CharDefFilters)                                 -- default filters to use for all characters. default: { floats = false, inactive = false, buftype = { "" = true }, fallback = "" }
+        {debug?}        (boolean)                                        -- debug. default: false
+        {modahl_opts?}  (ModahlOptions)                                  -- options for the Modahl module.
 
 
 ==============================================================================
-Introduction                                                   *modechar.modahl*
+Module                                                       *modechar.modechar*
+
+ModeCharModule                                *modechar.modechar.ModeCharModule*
+
+
+M.defaults                                          *modechar.modechar.defaults*
+    Default options.
+
+    Type: ~
+        (ModeCharOptions)
+
+
+M.setup({opts})                                        *modechar.modechar.setup*
+    Initialize the ModeChar module with the given options.
+
+    Parameters: ~
+        {opts}  (ModeCharOptions|{})
+
+
+M.get({name}, {winid?})                                  *modechar.modechar.get*
+    Get the character to display by name.
+
+    Parameters: ~
+        {name}    (string)  -- the key of the opts.chars table or the arg to the function
+        {winid?}  (number)  -- provide to check filters against the window, or nil to use g.statusline_winid
+
+    Returns: ~
+        (_)  -- the character to show or the fallback character if excluded by filters
+
+
+==============================================================================
+Introduction                                             *modechar.modahl.intro*
 
 Modahl: A module that dynamically updates highlight groups based on mode changes.
 
@@ -57,7 +109,7 @@ The known adapters are configured by name:
 <
 
 ==============================================================================
-Types                                                          *modechar.modahl*
+Types                                                    *modechar.modahl.types*
 
 ModahlAdapter                                    *modechar.modahl.ModahlAdapter*
 
@@ -104,75 +156,23 @@ M.setup({opts})                                          *modechar.modahl.setup*
 
 
 ==============================================================================
-Introduction                                                 *modechar.modechar*
+Modes                                                     *modechar.modhal.Mode*
 
-ModeChar: A module that registers a character (or any string) by name
-with associated window filters and highlights. It can be used to display
-characters in the statusline, tabline, or any other place where you can
-use a string.
+ Defines the modes recognized by the modahl plugin. Neovim native mode strings are mapped to these values.
 
->
-vim.o.statuscolumn = [[%!v:lua.require'modechar'.get('gutter') .. v:lua.require'snacks.statuscolumn'.get()]]
-<
+Mode                                                                      *Mode*
 
-==============================================================================
-Types                                                        *modechar.modechar*
-
-CharDef : CharDefFilters                             *modechar.modechar.CharDef*
-
-    Fields: ~
-        {1}          (string)                                                    -- the character to show (can be any string)
-        {highlight}  ("ModeCharLualine"|"ModeCharLualineInvert"|"Debug"|string)  -- highlight group name to use for the character.
-        {clear_hl?}  (boolean)                                                   -- whether to clear the highlight providedup after printing the character. default: true
-
-
-CharDefFilters                                *modechar.modechar.CharDefFilters*
-
-    Fields: ~
-        {floats?}    (boolean|string)        -- whether to show the character in floating windows. default: false
-        {inactive?}  (boolean|string)        -- whether to show the character in inactive windows. default: false
-        {buftype?}   (string|string[]|true)  -- a list of buffer types to show the character in. default: "" (normal buffers)
-        {fallback?}  (string)                -- fallback character to use if the ModeChar is excluded by the filters. default: ""
-
-
-ModeCharOptions                              *modechar.modechar.ModeCharOptions*
-
-    Fields: ~
-        {chars?}        (table<string,CharDef>|fun(arg:string):CharDef)  -- a table of ModeChar indexed by name or an equivalent function
-        {char_filter?}  (CharDefFilters)                                 -- default filters to use for all characters. default: { floats = false, inactive = false, buftype = { "" = true }, fallback = "" }
-        {debug?}        (boolean|number)                                 -- debug level. default: false
-        {modahl_opts?}  (ModahlOptions)                                  -- options for the Modahl module.
-
-
-==============================================================================
-Module                                                       *modechar.modechar*
-
-ModeCharModule                                *modechar.modechar.ModeCharModule*
-
-
-M.defaults                                          *modechar.modechar.defaults*
-    Default options.
-
-    Type: ~
-        (ModeCharOptions)
-
-
-M.setup({opts})                                        *modechar.modechar.setup*
-    Initialize the ModeChar module with the given options.
-
-    Parameters: ~
-        {opts}  (ModeCharOptions|{})
-
-
-M.get({name}, {winid?})                                  *modechar.modechar.get*
-    Get the character to display by name.
-
-    Parameters: ~
-        {name}    (string)  -- the key of the opts.chars table or the arg to the function
-        {winid?}  (number)  -- provide to check filters against the window, or nil to use g.statusline_winid
-
-    Returns: ~
-        (_)  -- the character to show or the fallback character if excluded by filters
+    Values: ~
+        UNDEFINED
+        NORMAL
+        INSERT
+        VISUAL
+        VISUAL_LINE
+        VISUAL_BLOCK
+        REPLACE
+        COMMAND
+        SELECT
+        TERMINAL
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:

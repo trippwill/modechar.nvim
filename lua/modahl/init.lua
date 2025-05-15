@@ -1,4 +1,4 @@
----@mod modechar.modahl Introduction
+---@mod modechar.modahl.intro Introduction
 ---@brief [[
 ---Modahl: A module that dynamically updates highlight groups based on mode changes.
 ---
@@ -36,7 +36,7 @@
 ---<
 ---@brief ]]
 
----@mod modechar.modahl Types
+---@mod modechar.modahl.types Types
 
 ---@class ModahlAdapter
 ---@field name string -- the name of the adapter
