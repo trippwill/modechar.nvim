@@ -26,7 +26,7 @@
 ---@class ModeCharOptions
 ---@field chars? table<string, CharDef> | fun(arg: string): CharDef -- a table of ModeChar indexed by name or an equivalent function
 ---@field char_filter? CharDefFilters -- default filters to use for all characters. default: { floats = false, inactive = false, buftype = { "" = true }, fallback = "" }
----@field debug? boolean | number -- debug level. default: false
+---@field debug? boolean -- debug. default: false
 ---@field modahl_opts? ModahlOptions -- options for the Modahl module.
 
 ---@mod modechar.modechar Module

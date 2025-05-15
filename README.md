@@ -10,12 +10,11 @@ A Neovim extension that provides user-defined characters with a HighlightGroup a
 
 - Get customizable characters to display in the gutter or other UI elements based on window filters.
   - Configurable filters for floating windows, inactive windows, and buffer types.
-- Works seamlessly with the `modahl` plugin for dynamic highlight group updates.
+- Works seamlessly with the `modahl` plugin (also in this repo) for dynamic highlight group updates.
 
 ## Roadmap
 
 - Better integration with plugin managers.
-- Neovim help documentation.
 - Logging to a file.
 
 ## Installation
@@ -24,11 +23,8 @@ Use your favorite plugin manager to install `modechar.nvim`. For example, with [
 
 ```lua
 {
-  --dir = "~/repos/modechar.nvim",
-  --name = "modechar",
-  config = function(_, opts)
-    require("modechar").setup(opts)
-  end,
+  "trippwill/modechar.nvim",
+  module = "modechar",
   opts = {
     chars = {
       gutter = { "▌", highlight = "ModeCharGutter", clear_hl = true, buftype = { "", "nofile" } },
@@ -46,14 +42,14 @@ You can configure `modechar.nvim` by passing options to the `setup` function. Be
 ```lua
 require('modechar').setup({
   chars = {
-    gutter = { "▌", highlight = "ModeCharGutter", clear_hl = true, buftype = { "", "nofile" } },
-    arrow = { "▶", highlight = "Modahl" },
+    gutter = { '▌', highlight = 'ModeCharGutter', clear_hl = true, buftype = { '', 'nofile' } },
+    arrow = { '▶', highlight = 'Modahl' },
   },
   char_filter = {
     floats = false, -- Disable in floating windows
     inactive = false, -- Disable in inactive windows
-    buftype = "", -- Only show in normal buffers
-    fallback = "", -- Fallback character if filters exclude the current one
+    buftype = '', -- Only show in normal buffers
+    fallback = '', -- Fallback character if filters exclude the current one
   },
   debug = false, -- Set to true or a number for debug output
 })
@@ -80,7 +76,7 @@ You can dynamically change the colors by defining highlight groups in the `modah
 
 ### Debugging
 
-Enable debugging by setting the `debug` option to `true` or a number:
+Enable debugging by setting the `debug` option to `true`:
 
 ```lua
 require('modechar').setup({
@@ -100,30 +96,39 @@ You can use filters to control where the characters are displayed. For example:
 
 ### Integration with modahl
 
-The `modechar` plugin works well with the `modahl` plugin to dynamically update highlight groups based on the current mode. For example:
+The `modechar` plugin works well with the `modahl` plugin to dynamically update highlight groups based on the current mode. Configure `modahl` by including `modahl_opts` in the `modechar` opts. For example:
 
 ```lua
+---@module 'modechar'
 {
-  --dir = "~/repos/modechar.nvim/lua/modahl/",
-  --name = "modahl",
+  "trippwill/modechar.nvim",
+  module = "modechar",
+  ---@type ModeCharOptions
   opts = {
-    hl_groups = {
-      {
-        "ModeCharGutter",
-        adapter = "lualine-invert", -- Add lualine as a dependency to use this adapter
-      },
-      {
-        adapter = "lualine", -- Add lualine as a dependency to use this adapter
-        links = { "CursorColumn" },
-      },
+    chars = {
+      gutter = { "▌", highlight = "ModeCharGutter", clear_hl = true, buftype = { "", "nofile" } },
+      arrow = { "▶", highlight = "Modahl" },
     },
     debug = false,
+    modahl_opts = {
+      highlights = {
+        {
+          "ModeCharGutter",
+          adapter = "lualine-invert",
+        },
+        {
+          "ModeCharArrow",
+          adapter = "debug",
+          links = { "CursorColumn" },
+        },
+      },
+      debug = false,
+    },
   },
-  config = function(_, opts)
-    require("modahl").setup(opts)
-  end,
 }
 ```
+
+`modahl` can also be used on it's own.
 
 ### Integration with lualine
 

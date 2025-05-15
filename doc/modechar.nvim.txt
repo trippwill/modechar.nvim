@@ -59,14 +59,14 @@ The known adapters are configured by name:
 ==============================================================================
 Types                                                          *modechar.modahl*
 
-ModahlAdapter                                                    *ModahlAdapter*
+ModahlAdapter                                    *modechar.modahl.ModahlAdapter*
 
     Fields: ~
         {name}            (string)                                                                      -- the name of the adapter
         {on_mode_change}  (fun(prev:Mode,curr:Mode,config:ModahlOptions):vim.api.keyset.highlight|nil)  -- callback function
 
 
-HighlightGroupDefinition                              *HighlightGroupDefinition*
+HighlightGroupDefinition              *modechar.modahl.HighlightGroupDefinition*
 
     Fields: ~
         {1?}        (string)                                            -- the name of the highlight group to create and keep updated
@@ -74,7 +74,7 @@ HighlightGroupDefinition                              *HighlightGroupDefinition*
         {links?}    (string[])                                          -- a list of highlight groups to link to this group
 
 
-ModahlOptions                                                    *ModahlOptions*
+ModahlOptions                                    *modechar.modahl.ModahlOptions*
 
     Fields: ~
         {highlights?}     (HighlightGroupDefinition[])  -- a list of highlight groups to create and keep updated
@@ -86,17 +86,17 @@ ModahlOptions                                                    *ModahlOptions*
 ==============================================================================
 Module                                                         *modechar.modahl*
 
-ModahlModule                                                      *ModahlModule*
+ModahlModule                                      *modechar.modahl.ModahlModule*
 
 
-M.defaults                                                          *M.defaults*
+M.defaults                                            *modechar.modahl.defaults*
     Default options.
 
     Type: ~
         (ModahlOptions)
 
 
-M.setup({opts})                                                        *M.setup*
+M.setup({opts})                                          *modechar.modahl.setup*
     Initialize the Modahl module with the given options.
 
     Parameters: ~
@@ -118,7 +118,7 @@ vim.o.statuscolumn = [[%!v:lua.require'modechar'.get('gutter') .. v:lua.require'
 ==============================================================================
 Types                                                        *modechar.modechar*
 
-CharDef : CharDefFilters                                               *CharDef*
+CharDef : CharDefFilters                             *modechar.modechar.CharDef*
 
     Fields: ~
         {1}          (string)                                                    -- the character to show (can be any string)
@@ -126,7 +126,7 @@ CharDef : CharDefFilters                                               *CharDef*
         {clear_hl?}  (boolean)                                                   -- whether to clear the highlight providedup after printing the character. default: true
 
 
-CharDefFilters                                                  *CharDefFilters*
+CharDefFilters                                *modechar.modechar.CharDefFilters*
 
     Fields: ~
         {floats?}    (boolean|string)        -- whether to show the character in floating windows. default: false
@@ -135,7 +135,7 @@ CharDefFilters                                                  *CharDefFilters*
         {fallback?}  (string)                -- fallback character to use if the ModeChar is excluded by the filters. default: ""
 
 
-ModeCharOptions                                                *ModeCharOptions*
+ModeCharOptions                              *modechar.modechar.ModeCharOptions*
 
     Fields: ~
         {chars?}        (table<string,CharDef>|fun(arg:string):CharDef)  -- a table of ModeChar indexed by name or an equivalent function
@@ -147,24 +147,24 @@ ModeCharOptions                                                *ModeCharOptions*
 ==============================================================================
 Module                                                       *modechar.modechar*
 
-ModeCharModule                                                  *ModeCharModule*
+ModeCharModule                                *modechar.modechar.ModeCharModule*
 
 
-M.defaults                                                          *M.defaults*
+M.defaults                                          *modechar.modechar.defaults*
     Default options.
 
     Type: ~
         (ModeCharOptions)
 
 
-M.setup({opts})                                                        *M.setup*
+M.setup({opts})                                        *modechar.modechar.setup*
     Initialize the ModeChar module with the given options.
 
     Parameters: ~
         {opts}  (ModeCharOptions|{})
 
 
-M.get({name}, {winid?})                                                  *M.get*
+M.get({name}, {winid?})                                  *modechar.modechar.get*
     Get the character to display by name.
 
     Parameters: ~

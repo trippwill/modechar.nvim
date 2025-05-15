@@ -6,7 +6,7 @@
 
 mkdir -p "$PWD/doc"
 cargo install vimcats --features=cli
-vimcats lua/modahl/modes.lua \
+vimcats -c -a -t -f lua/modahl/modes.lua \
   lua/modahl/init.lua \
   lua/modahl/debug_adapter.lua \
   lua/modahl/lualine_adapter.lua \
