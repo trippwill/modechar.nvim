@@ -1,8 +1,20 @@
--- modechar - Register characters by name, with associated filters and highlight groups.
+---@mod modechar.modechar Introduction
+---@brief [[
+---ModeChar: A module that registers a character (or any string) by name
+---with associated window filters and highlights. It can be used to display
+---characters in the statusline, tabline, or any other place where you can
+---use a string.
+---
+--->
+---vim.o.statuscolumn = [[%!v:lua.require'modechar'.get('gutter') .. v:lua.require'snacks.statuscolumn'.get()]]
+---<
+---@brief ]]
+
+---@mod modechar.modechar Types
 
 ---@class CharDef : CharDefFilters
 ---@field [1] string -- the character to show (can be any string)
----@field highlight "ModeCharLualine" | "ModeCharLualineInvert" | "Debug" | string -- highlight group name to use for the character.
+---@field highlight 'ModeCharLualine' | 'ModeCharLualineInvert' | 'Debug' | string -- highlight group name to use for the character.
 ---@field clear_hl? boolean -- whether to clear the highlight providedup after printing the character. default: true
 
 ---@class CharDefFilters
@@ -17,38 +29,37 @@
 ---@field debug? boolean | number -- debug level. default: false
 ---@field modahl_opts? ModahlOptions -- options for the Modahl module.
 
+---@mod modechar.modechar Module
+
 ---@class ModeCharModule
----@field defaults ModeCharOptions -- default options for the ModeChar module
----@field config ModeCharOptions | nil -- current options for the ModeChar module
----@field setup fun(opts: ModeCharOptions) -- function to setup the ModeChar module
----@field get fun(name: string, winid?: number): string -- function to get the character to display by name
 local M = {}
 
+---Default options.
 ---@type ModeCharOptions
 M.defaults = {
   chars = {
-    gutter = { "\u{258c}", highlight = "ModeCharLualineInvert" },
+    gutter = { '\u{258c}', highlight = 'ModeCharLualineInvert' },
   },
   char_filter = {
     floats = false,
     inactive = false,
-    buftype = "", -- only show in normal buffers
-    fallback = "",
+    buftype = '', -- only show in normal buffers
+    fallback = '',
   },
   debug = false,
   modahl_opts = {
     highlights = {
       {
-        "ModeCharLualineInvert",
-        adapter = "lualine-invert",
+        'ModeCharLualineInvert',
+        adapter = 'lualine-invert',
       },
       {
-        "ModeCharLualine",
-        adapter = "lualine",
+        'ModeCharLualine',
+        adapter = 'lualine',
       },
       {
-        "ModeCharDebug",
-        adapter = "debug",
+        'ModeCharDebug',
+        adapter = 'debug',
       },
     },
     debug = false,
@@ -57,69 +68,70 @@ M.defaults = {
 
 ---@type ModeCharOptions | nil
 ---@package
+---@private
 M.config = nil
 
---Setup the ModeChar plugin
----@param opts ModeCharOptions
+---Initialize the ModeChar module with the given options.
+---@param opts ModeCharOptions | {}
 function M.setup(opts)
-  local config = vim.tbl_deep_extend("force", M.defaults, opts or {})
+  local config = vim.tbl_deep_extend('force', M.defaults, opts or {})
 
   if config.debug then
-    vim.notify("ModeChar: setup() called with options:\n" .. vim.inspect(config), vim.log.levels.DEBUG)
+    vim.notify('ModeChar: setup() called with options:\n' .. vim.inspect(config), vim.log.levels.DEBUG)
   end
 
   -- Validate the options
-  if type(config.chars) ~= "table" and type(config.chars) ~= "function" then
-    vim.notify("ModeChar: chars must be a table or a function", vim.log.levels.ERROR)
+  if type(config.chars) ~= 'table' and type(config.chars) ~= 'function' then
+    vim.notify('ModeChar: chars must be a table or a function', vim.log.levels.ERROR)
     return
   end
 
   -- Setup Modahl if options are provided
-  if type(config.modahl_opts) == "table" then
-    local modahl = require("modahl")
+  if type(config.modahl_opts) == 'table' then
+    local modahl = require('modahl')
     local ok, res = pcall(modahl.setup, config.modahl_opts)
     if not ok then
-      vim.notify("ModeChar: failed to setup Modahl: " .. tostring(res), vim.log.levels.ERROR)
+      vim.notify('ModeChar: failed to setup Modahl: ' .. tostring(res), vim.log.levels.ERROR)
     end
   end
 
   M.config = config
 end
 
---Get the character to display by name
----@param name string - the index of the opts.chars table or function
----@param winid? number - provide to check filters against the window, or nil to use g.statusline_winid
----@return string -- the character to show
+---Get the character to display by name.
+---@param name string -- the key of the opts.chars table or the arg to the function
+---@param winid? number -- provide to check filters against the window, or nil to use g.statusline_winid
+---@return _ string -- the character to show or the fallback character if excluded by filters
 function M.get(name, winid)
   if not M.config then
-    vim.notify_once("ModeChar: setup() must be called before using get()", vim.log.levels.ERROR)
-    return ""
+    vim.notify_once('ModeChar: setup() must be called before using get()', vim.log.levels.ERROR)
+    return ''
   end
 
   local chars = M.config.chars
   local default_filter = M.config.char_filter
-  local ef_key = "expanded_fallback"
+  local ef_key = 'expanded_fallback'
 
   if not chars then
-    vim.notify("ModeChar: chars must be a table or a function", vim.log.levels.ERROR)
-    return ""
+    vim.notify('ModeChar: chars must be a table or a function', vim.log.levels.ERROR)
+    return ''
   end
 
   -- Retrieve the character definition
-  local chardef = (type(chars) == "function" and chars(name)) or chars[name]
+  local chardef = (type(chars) == 'function' and chars(name)) or chars[name]
   if not chardef then
-    return (default_filter and default_filter.fallback) or ""
+    return (default_filter and default_filter.fallback) or ''
   end
 
   -- Handle highlight clearing
-  local final_char = (chardef.clear_hl == false) and "" or "%*"
+  local final_char = (chardef.clear_hl == false) and '' or '%*'
 
   -- Cache expanded fallback if not already cached
   if not chardef[ef_key] then
-    local fallback_char = chardef.fallback or (default_filter and default_filter.fallback) or ""
-    chardef[ef_key] = (fallback_char ~= "")
-        and ("%#" .. (chardef.highlight or "") .. "#" .. fallback_char .. final_char)
-      or ""
+    local fallback_char = chardef.fallback or (default_filter and default_filter.fallback) or ''
+    chardef[ef_key] = (fallback_char ~= '')
+        and ('%#' .. (chardef.highlight or '') .. '#' .. fallback_char .. final_char)
+      or ''
   end
 
   -- Check if the character is excluded by the filters
@@ -129,7 +141,7 @@ function M.get(name, winid)
   end
 
   -- Return the final character with highlight
-  return "%#" .. chardef.highlight .. "#" .. chardef[1] .. final_char
+  return '%#' .. chardef.highlight .. '#' .. chardef[1] .. final_char
 end
 
 --Validate window filters
@@ -140,7 +152,7 @@ end
 ---@return boolean
 function M:is_valid_window(winid, chardef)
   local floats = chardef.floats or self.config.char_filter.floats
-  if not floats and vim.api.nvim_win_get_config(winid).relative ~= "" then
+  if not floats and vim.api.nvim_win_get_config(winid).relative ~= '' then
     return false
   end
 
@@ -150,12 +162,12 @@ function M:is_valid_window(winid, chardef)
   end
 
   local buftype = chardef.buftype or self.config.char_filter.buftype
-  if type(buftype) == "string" then
+  if type(buftype) == 'string' then
     buftype = { buftype }
   end
 
   local bufnr = vim.api.nvim_win_get_buf(winid)
-  if bufnr and type(buftype) == "table" and not vim.tbl_contains(buftype, vim.bo[bufnr].buftype) then
+  if bufnr and type(buftype) == 'table' and not vim.tbl_contains(buftype, vim.bo[bufnr].buftype) then
     return false
   end
 

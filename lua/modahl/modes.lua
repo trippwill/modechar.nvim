@@ -1,4 +1,7 @@
--- Defines the modes recognized by the modahl plugin. Neovim native mode strings are mapped to these values.
+---@mod modechar.modhal.modes Modes
+---@brief [[
+--- Defines the modes recognized by the modahl plugin. Neovim native mode strings are mapped to these values.
+---@brief ]]
 
 ---@enum Mode
 local mode = {
