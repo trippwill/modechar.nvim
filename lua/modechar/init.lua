@@ -12,20 +12,20 @@
 
 ---@mod modechar.modechar.types Types
 
----@class CharDef : CharDefFilters
+---@class CharDef : WinFilter
 ---@field [1] string -- the character to show (can be any string)
 ---@field highlight 'ModeCharLualine' | 'ModeCharLualineInvert' | 'ModeCharDebug' | string -- highlight group name to use for the character.
 ---@field clear_hl? boolean -- whether to clear the highlight providedup after printing the character. default: true
 
----@class CharDefFilters
----@field floats? boolean | string -- whether to show the character in floating windows. default: false
----@field inactive? boolean | string -- whether to show the character in inactive windows. default: false
+---@class WinFilter
+---@field enable_floats? boolean | string -- whether to show the character in floating windows. default: false
+---@field enable_inactive? boolean | string -- whether to show the character in inactive windows. default: false
 ---@field buftype? string | string[] | true -- a list of buffer types to show the character in. default: "" (normal buffers)
 ---@field fallback? string -- fallback character to use if the ModeChar is excluded by the filters. default: ""
 
 ---@class ModeCharOptions
 ---@field chars? table<string, CharDef> | fun(arg: string): CharDef -- a table of ModeChar indexed by name or an equivalent function
----@field char_filter? CharDefFilters -- default filters to use for all characters. default: { floats = false, inactive = false, buftype = { "" = true }, fallback = "" }
+---@field win_filter? WinFilter -- default filters to use for all characters. default: { floats = false, inactive = false, buftype = { "" = true }, fallback = "" }
 ---@field debug? boolean -- debug. default: false
 ---@field modahl_opts? ModahlOptions -- options for the Modahl module.
 
@@ -40,9 +40,9 @@ M.defaults = {
   chars = {
     gutter = { '\u{258c}', highlight = 'ModeCharLualineInvert' },
   },
-  char_filter = {
-    floats = false,
-    inactive = false,
+  win_filter = {
+    enable_floats = false,
+    enable_inactive = false,
     buftype = '', -- only show in normal buffers
     fallback = '',
   },
@@ -98,7 +98,7 @@ function M.setup(opts)
   M.config = config
 end
 
----Get the character to display by name.
+---Get the formatted and filtered character by name.
 ---@param name string -- the key of the opts.chars table or the arg to the function
 ---@param winid? number -- provide to check filters against the window, or nil to use g.statusline_winid
 ---@return _ string -- the character to show or the fallback character if excluded by filters
@@ -109,15 +109,10 @@ function M.get(name, winid)
   end
 
   local chars = M.config.chars
-  local default_fallback = M.config.char_filter.fallback or ''
-
-  if not chars or (type(chars) ~= 'table' and type(chars) ~= 'function') then
-    vim.notify('ModeChar: chars must be a table or a function', vim.log.levels.ERROR)
-    return ''
-  end
+  local default_fallback = M.config.win_filter.fallback or ''
 
   -- Retrieve the character definition
-  local chardef = (type(chars) == 'function' and chars(name)) or chars[name]
+  local chardef = chars and ((type(chars) == 'function' and chars(name)) or chars[name])
   if not chardef then
     return default_fallback
   end
@@ -142,17 +137,17 @@ end
 ---@param chardef CharDef
 ---@return boolean
 function M:is_valid_window(winid, chardef)
-  local floats = chardef.floats or self.config.char_filter.floats
+  local floats = chardef.enable_floats or self.config.win_filter.enable_floats
   if not floats and vim.api.nvim_win_get_config(winid).relative ~= '' then
     return false
   end
 
-  local inactive = chardef.inactive or self.config.char_filter.inactive
+  local inactive = chardef.enable_inactive or self.config.win_filter.enable_inactive
   if not inactive and vim.api.nvim_get_current_win() ~= winid then
     return false
   end
 
-  local buftype = chardef.buftype or self.config.char_filter.buftype
+  local buftype = chardef.buftype or self.config.win_filter.buftype
   if type(buftype) == 'string' then
     buftype = { buftype }
   end

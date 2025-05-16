@@ -7,6 +7,7 @@
 ---are provided: "debug", "lualine", and "lualine-invert". The "debug" adapter is the default if not configured.
 ---
 ---The known adapters are configured by name:
+---
 --->
 ---{
 ---  "MyOtherHighlightIsAPorche",
@@ -14,8 +15,9 @@
 ---}
 ---<
 ---
---->
 --- A custom adapter can easily be created inline:
+---
+--->
 ---{
 ---  "MyCustomGroup",
 ---  ---@type ModahlAdapter
