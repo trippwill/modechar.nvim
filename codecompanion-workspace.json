@@ -11,7 +11,9 @@
         "modahl_debug_adapter",
         "modahl_lualine_adapter",
         "modahl_lualine-invert_adapter",
-        "modahl_modes"
+        "modahl_modes",
+        "help_txt",
+        "readme"
       ]
     },
     {
@@ -19,8 +21,9 @@
       "system_prompt": "You are working on the 'modechar' plugin, which provides named characters and window filters with highlight groups for use in status columns, borders, and other UI elements.",
       "data": [
         "modechar_init",
-        "modechar_utils",
-        "modechar_plugin"
+        "modechar_plugin",
+        "help_txt",
+        "readme"
       ]
     }
   ],
@@ -55,11 +58,6 @@
       "path": "lua/modechar/init.lua",
       "description": "Entry point for the 'modechar' plugin."
     },
-    "modechar_utils": {
-      "type": "file",
-      "path": "lua/modechar/utils.lua",
-      "description": "Utility functions for the 'modechar' plugin."
-    },
     "modechar_plugin": {
       "type": "file",
       "path": "plugin/modechar.lua",
@@ -74,6 +72,11 @@
       "type": "file",
       "path": "unicode-ui-symbols.md",
       "description": "Reference for Unicode UI symbols."
+    },
+    "help_txt": {
+      "type": "file",
+      "path": "doc/modechar.nvim.txt",
+      "description": "Help documentation for the 'modechar' plugin."
     }
   }
 }
