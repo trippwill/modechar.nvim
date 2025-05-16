@@ -13,7 +13,7 @@ vim.o.statuscolumn = [[%!v:lua.require'modechar'.get('gutter') .. v:lua.require'
 ==============================================================================
 Types                                                  *modechar.modechar.types*
 
-CharDef : CharDefFilters                             *modechar.modechar.CharDef*
+CharDef : WinFilter                                  *modechar.modechar.CharDef*
 
     Fields: ~
         {1}          (string)                                                            -- the character to show (can be any string)
@@ -21,20 +21,20 @@ CharDef : CharDefFilters                             *modechar.modechar.CharDef*
         {clear_hl?}  (boolean)                                                           -- whether to clear the highlight providedup after printing the character. default: true
 
 
-CharDefFilters                                *modechar.modechar.CharDefFilters*
+WinFilter                                          *modechar.modechar.WinFilter*
 
     Fields: ~
-        {floats?}    (boolean|string)        -- whether to show the character in floating windows. default: false
-        {inactive?}  (boolean|string)        -- whether to show the character in inactive windows. default: false
-        {buftype?}   (string|string[]|true)  -- a list of buffer types to show the character in. default: "" (normal buffers)
-        {fallback?}  (string)                -- fallback character to use if the ModeChar is excluded by the filters. default: ""
+        {enable_floats?}    (boolean|string)        -- whether to show the character in floating windows. default: false
+        {enable_inactive?}  (boolean|string)        -- whether to show the character in inactive windows. default: false
+        {buftype?}          (string|string[]|true)  -- a list of buffer types to show the character in. default: "" (normal buffers)
+        {fallback?}         (string)                -- fallback character to use if the ModeChar is excluded by the filters. default: ""
 
 
 ModeCharOptions                              *modechar.modechar.ModeCharOptions*
 
     Fields: ~
         {chars?}        (table<string,CharDef>|fun(arg:string):CharDef)  -- a table of ModeChar indexed by name or an equivalent function
-        {char_filter?}  (CharDefFilters)                                 -- default filters to use for all characters. default: { floats = false, inactive = false, buftype = { "" = true }, fallback = "" }
+        {win_filter?}   (WinFilter)                                      -- default filters to use for all characters. default: { floats = false, inactive = false, buftype = { "" = true }, fallback = "" }
         {debug?}        (boolean)                                        -- debug. default: false
         {modahl_opts?}  (ModahlOptions)                                  -- options for the Modahl module.
 
@@ -60,7 +60,7 @@ M.setup({opts})                                        *modechar.modechar.setup*
 
 
 M.get({name}, {winid?})                                  *modechar.modechar.get*
-    Get the character to display by name.
+    Get the formatted and filtered character by name.
 
     Parameters: ~
         {name}    (string)  -- the key of the opts.chars table or the arg to the function
@@ -80,6 +80,7 @@ The atttributes for the highlight group updates are provided by the adapter. Thr
 are provided: "debug", "lualine", and "lualine-invert". The "debug" adapter is the default if not configured.
 
 The known adapters are configured by name:
+
 >
 {
   "MyOtherHighlightIsAPorche",
@@ -87,8 +88,9 @@ The known adapters are configured by name:
 }
 <
 
->
  A custom adapter can easily be created inline:
+
+>
 {
   "MyCustomGroup",
   ---@type ModahlAdapter
