@@ -140,5 +140,8 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 
 ## License
 
-Licensed under the GPL-3.0 License. See [LICENSE](LICENSE) for details.
+This project is licensed under the [Apache License 2.0](LICENSE).
 
+Copyright © 2025 trippwill
+
+By submitting code, you agree that your work will be licensed under the Apache License 2.0 and that contributors retain copyright to their contributions.
